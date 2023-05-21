@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -39,9 +40,26 @@ func ListProducts(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(products))
 }
 
+func GetProductByID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	data := loadData()
+
+	var products Products
+	json.Unmarshal(data, &products)
+
+	for _, v := range products.Products {
+		if v.UUID == vars["id"] {
+			product, _ := json.Marshal(v)
+			w.Write([]byte(product))
+		}
+	}
+}
+
 func main() {
 	r := mux.NewRouter()
+
 	r.HandleFunc("/products", ListProducts)
+	r.HandleFunc("/products/{id}", GetProductByID)
 
 	fmt.Println("server started on port [::8080]")
 	http.ListenAndServe(":8080", r)
