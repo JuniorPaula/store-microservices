@@ -1,6 +1,12 @@
 package main
 
-import "os"
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"os"
+)
 
 type Product struct {
 	UUID    string  `json:"uuid"`
@@ -18,6 +24,21 @@ func init() {
 	productURL = os.Getenv("PRODUCT_URL")
 }
 
-func main() {
+func loadProducts() []Product {
+	response, err := http.Get(productURL + "/products")
+	if err != nil {
+		fmt.Println("[ERROR]", err)
+	}
+	data, _ := io.ReadAll(response.Body)
 
+	var products Products
+	json.Unmarshal(data, &products)
+
+	fmt.Println(string(data))
+
+	return products.Products
+}
+
+func main() {
+	loadProducts()
 }
