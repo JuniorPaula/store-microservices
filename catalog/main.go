@@ -46,10 +46,27 @@ func ListProductsFromHTMLTemplate(w http.ResponseWriter, r *http.Request) {
 	t.Execute(w, products)
 }
 
+func ShowProductFromHTMLTemplate(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	response, err := http.Get(productURL + "/products/" + vars["id"])
+	if err != nil {
+		fmt.Printf("the HTTP request failed with error: %s\n", err)
+	}
+
+	data, _ := io.ReadAll(response.Body)
+
+	var product Product
+	json.Unmarshal(data, &product)
+
+	t := template.Must(template.ParseFiles("template/view.html"))
+	t.Execute(w, product)
+}
+
 func main() {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/", ListProductsFromHTMLTemplate)
+	r.HandleFunc("/product/{id}", ShowProductFromHTMLTemplate)
 
 	fmt.Print("catalog server started on port [::8081]\n")
 	http.ListenAndServe(":8081", r)
