@@ -3,9 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
 	"net/http"
 	"os"
+
+	"github.com/gorilla/mux"
 )
 
 type Product struct {
@@ -34,11 +37,20 @@ func loadProducts() []Product {
 	var products Products
 	json.Unmarshal(data, &products)
 
-	fmt.Println(string(data))
-
 	return products.Products
 }
 
+func ListProductsFromHTMLTemplate(w http.ResponseWriter, r *http.Request) {
+	products := loadProducts()
+	t := template.Must(template.ParseFiles("template/catalog.html"))
+	t.Execute(w, products)
+}
+
 func main() {
-	loadProducts()
+	r := mux.NewRouter()
+
+	r.HandleFunc("/", ListProductsFromHTMLTemplate)
+
+	fmt.Print("catalog server started on port [::8081]\n")
+	http.ListenAndServe(":8081", r)
 }
