@@ -21,6 +21,13 @@ type Products struct {
 	Products []Product
 }
 
+type Order struct {
+	Name      string `json:"name"`
+	Email     string `json:"email"`
+	Phone     string `json:"phone"`
+	ProductID string `json:"product_id"`
+}
+
 var productsURL string
 
 func init() {
@@ -44,9 +51,23 @@ func displayCheckout(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func finish(w http.ResponseWriter, r *http.Request) {
+	var order Order
+	order.Name = r.FormValue("name")
+	order.Email = r.FormValue("email")
+	order.Phone = r.FormValue("phone")
+	order.ProductID = r.FormValue("product_id")
+
+	data, _ := json.Marshal(order)
+	fmt.Println(string(data))
+
+	w.Write([]byte("Procceced!!!"))
+}
+
 func main() {
 
 	r := mux.NewRouter()
+	r.HandleFunc("/finish", finish)
 	r.HandleFunc("/{id}", displayCheckout)
 
 	fmt.Println("checkout server started on port 8082")
