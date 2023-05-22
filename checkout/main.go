@@ -62,7 +62,9 @@ func finish(w http.ResponseWriter, r *http.Request) {
 	data, _ := json.Marshal(order)
 	fmt.Println(string(data))
 
-	queue.Connect()
+	connection := queue.Connect()
+	queue.Notify(data, "checkout_ex", "", connection)
+
 	w.Write([]byte("Procceced!!!"))
 }
 
