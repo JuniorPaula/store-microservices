@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"text/template"
 
 	"github.com/gorilla/mux"
 )
@@ -37,6 +38,9 @@ func displayCheckout(w http.ResponseWriter, r *http.Request) {
 
 	var product Product
 	json.Unmarshal(data, &product)
+
+	t := template.Must(template.ParseFiles("template/checkout.html"))
+	t.Execute(w, product)
 
 }
 
