@@ -1,6 +1,7 @@
 package main
 
 import (
+	"checkout/queue"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -61,6 +62,7 @@ func finish(w http.ResponseWriter, r *http.Request) {
 	data, _ := json.Marshal(order)
 	fmt.Println(string(data))
 
+	queue.Connect()
 	w.Write([]byte("Procceced!!!"))
 }
 
