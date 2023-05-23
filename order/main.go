@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"order/db"
 	"order/queue"
 	"os"
 	"time"
@@ -47,7 +48,13 @@ func createOrder(payload []byte) {
 }
 
 func saveOrder(order Order) {
+	json, _ := json.Marshal(order)
+	connection := db.Connect()
 
+	err := connection.Set(order.UUID, string(json), 0).Err()
+	if err != nil {
+		panic(err.Error())
+	}
 }
 
 func getProductByID(id string) Product {
