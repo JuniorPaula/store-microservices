@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"net/http"
@@ -78,13 +79,31 @@ func getProductByID(id string) Product {
 }
 
 func main() {
+	var param string
+	flag.StringVar(&param, "opt", "", "Usage")
+	flag.Parse()
+
 	in := make(chan []byte)
-
 	connection := queue.Connect()
-	queue.StartConsumer("checkout_queue", connection, in)
 
-	for payload := range in {
-		notifyOrderCreated(createOrder(payload), connection)
-		fmt.Println(string(payload))
+	switch param {
+	case "checkout":
+		queue.StartConsumer("checkout_queue", connection, in)
+
+		for payload := range in {
+			notifyOrderCreated(createOrder(payload), connection)
+			fmt.Println("#Checkout;", string(payload))
+		}
+	case "payment":
+		queue.StartConsumer("payment_queue", connection, in)
+
+		var order Order
+		for payload := range in {
+			json.Unmarshal(payload, &order)
+			saveOrder(order)
+
+			fmt.Println("#Payment;", string(payload))
+		}
 	}
+
 }
