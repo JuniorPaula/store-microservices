@@ -11,6 +11,7 @@ import (
 	"time"
 
 	uuid "github.com/nu7hatch/gouuid"
+	"github.com/streadway/amqp"
 )
 
 type Product struct {
@@ -35,7 +36,7 @@ func init() {
 	productURL = os.Getenv("PRODUCT_URL")
 }
 
-func createOrder(payload []byte) {
+func createOrder(payload []byte) Order {
 	var order Order
 	json.Unmarshal(payload, &order)
 
@@ -45,6 +46,7 @@ func createOrder(payload []byte) {
 	order.CreatedAt = time.Now()
 
 	saveOrder(order)
+	return order
 }
 
 func saveOrder(order Order) {
@@ -55,6 +57,11 @@ func saveOrder(order Order) {
 	if err != nil {
 		panic(err.Error())
 	}
+}
+
+func notifyOrderCreated(order Order, ch *amqp.Channel) {
+	json, _ := json.Marshal(order)
+	queue.Notify(json, "order_ex", "", ch)
 }
 
 func getProductByID(id string) Product {
@@ -74,10 +81,10 @@ func main() {
 	in := make(chan []byte)
 
 	connection := queue.Connect()
-	queue.StartConsumer(connection, in)
+	queue.StartConsumer("checkout_queue", connection, in)
 
 	for payload := range in {
-		createOrder(payload)
+		notifyOrderCreated(createOrder(payload), connection)
 		fmt.Println(string(payload))
 	}
 }

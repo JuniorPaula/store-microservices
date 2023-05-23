@@ -41,10 +41,10 @@ func Notify(payload []byte, exchange string, routingKey string, ch *amqp.Channel
 	fmt.Println("message sended")
 }
 
-func StartConsumer(ch *amqp.Channel, in chan []byte) {
+func StartConsumer(queue string, ch *amqp.Channel, in chan []byte) {
 
 	q, err := ch.QueueDeclare(
-		os.Getenv("RABBITMQ_CONSUMER_QUEUE"),
+		queue,
 		true,  // durable
 		false, // autoDelete
 		false, // exclusive
