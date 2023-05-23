@@ -1,6 +1,10 @@
 package main
 
-import "os"
+import (
+	"fmt"
+	"order/queue"
+	"os"
+)
 
 type Product struct {
 	UUID    string  `json:"uuid"`
@@ -25,5 +29,12 @@ func init() {
 }
 
 func main() {
+	in := make(chan []byte)
 
+	connection := queue.Connect()
+	queue.StartConsumer(connection, in)
+
+	for payload := range in {
+		fmt.Println(string(payload))
+	}
 }
